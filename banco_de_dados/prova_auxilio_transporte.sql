@@ -45,15 +45,12 @@ CREATE TABLE log_auditoria (
     data_evento  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
--- Índices úteis
+-- Índices
 -- CREATE INDEX idx_solicitacoes_data ON solicitacoes_auxilio (data_solicitacao);
 -- CREATE INDEX idx_solicitacoes_status ON solicitacoes_auxilio (status);
 -- CREATE INDEX idx_funcionarios_depto ON funcionarios (departamento);
 
--- =========================================================
 -- 2) INSERÇÃO DE DADOS
--- =========================================================
-
 INSERT INTO funcionarios (matricula, nome, departamento, data_admissao) VALUES
 ('MAT-0001','Ana Souza','Financeiro', CURRENT_DATE - INTERVAL '900 days'),
 ('MAT-0002','Bruno Lima','Financeiro', CURRENT_DATE - INTERVAL '850 days'),
@@ -73,8 +70,8 @@ INSERT INTO funcionarios (matricula, nome, departamento, data_admissao) VALUES
 ('MAT-0016','Patricia Barros','Comercial', CURRENT_DATE - INTERVAL '660 days'),
 ('MAT-0017','Rafael Araujo','Comercial', CURRENT_DATE - INTERVAL '640 days'),
 ('MAT-0018','Sara Nunes','Comercial', CURRENT_DATE - INTERVAL '620 days'),
-('MAT-0019','Tiago Fernandes','Jurídico', CURRENT_DATE - INTERVAL '600 days'),
-('MAT-0020','Vanessa Teixeira','Jurídico', CURRENT_DATE - INTERVAL '580 days');
+('MAT-0019','Tiago Fernandes','Juridico', CURRENT_DATE - INTERVAL '600 days'),
+('MAT-0020','Vanessa Teixeira','Juridico', CURRENT_DATE - INTERVAL '580 days');
 
 INSERT INTO solicitacoes_auxilio (id_funcionario, valor_solicitado, status, data_solicitacao) VALUES
 -- Mês atual (12)
@@ -119,10 +116,7 @@ INSERT INTO solicitacoes_auxilio (id_funcionario, valor_solicitado, status, data
 (15, 310.00,'PENDENTE', NOW() - INTERVAL '75 days'),
 (16, 510.00,'APROVADO', NOW() - INTERVAL '76 days');
 
-
--- =========================================================
 -- 3.1) JOIN e ORDER BY
--- =========================================================
 SELECT
     f.nome,
     f.matricula,
@@ -136,9 +130,7 @@ WHERE s.status = 'APROVADO'
     AND s.data_solicitacao >= (NOW() - INTERVAL '6 months')
 ORDER BY f.departamento ASC, s.valor_solicitado DESC;
 
--- =========================================================
 -- 3.2) GROUP BY e HAVING
--- =========================================================
 SELECT
     TO_CHAR(DATE_TRUNC('month', s.data_solicitacao), 'YYYY-MM') AS ano_mes,
     COUNT(*) AS qtd_solicitacoes,
@@ -149,3 +141,84 @@ FROM solicitacoes_auxilio s
 GROUP BY DATE_TRUNC('month', s.data_solicitacao)
 HAVING COUNT(*) > 10
 ORDER BY DATE_TRUNC('month', s.data_solicitacao) DESC;
+
+-- 3.3) TRIGGER: ao inserir pagamento -> status PAGO + log
+CREATE OR REPLACE FUNCTION fn_pagamento_pos_insert()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_old_status TEXT;
+BEGIN
+    SELECT status INTO v_old_status
+    FROM solicitacoes_auxilio
+    WHERE id = NEW.id_solicitacao;
+
+    UPDATE solicitacoes_auxilio
+    SET status = 'PAGO'
+    WHERE id = NEW.id_solicitacao;
+
+    INSERT INTO log_auditoria (tabela, operacao, registro_id, detalhes)
+    VALUES (
+    'pagamentos',
+    'INSERT',
+    NEW.id,
+    'Pagamento inserido para solicitacao_id=' || NEW.id_solicitacao ||
+    '; status_anterior=' || COALESCE(v_old_status, 'NULL') ||
+    '; novo_status=PAGO; valor_pago=' || NEW.valor_pago
+    );
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_pagamento_pos_insert ON pagamentos;
+
+CREATE TRIGGER trg_pagamento_pos_insert
+AFTER INSERT ON pagamentos
+FOR EACH ROW
+EXECUTE FUNCTION fn_pagamento_pos_insert();
+
+-- Inserir 20 pagamentos 
+INSERT INTO pagamentos (id_solicitacao, valor_pago, data_pagamento)
+SELECT s.id, s.valor_solicitado, NOW()
+FROM solicitacoes_auxilio s
+WHERE s.status = 'APROVADO'
+ORDER BY s.data_solicitacao DESC
+LIMIT 20;
+
+-- 3.4) STORED PROCEDURE 
+CREATE OR REPLACE FUNCTION sp_cancelar_solicitacao(p_id_solicitacao BIGINT, p_motivo TEXT)
+RETURNS TEXT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_status_atual TEXT;
+BEGIN
+    SELECT status INTO v_status_atual
+    FROM solicitacoes_auxilio
+    WHERE id = p_id_solicitacao;
+
+    IF v_status_atual IS NULL THEN
+        RETURN 'ERRO: Solicitação não encontrada (id=' || p_id_solicitacao || ').';
+    END IF;
+
+    IF v_status_atual = 'PAGO' THEN
+        RETURN 'ERRO: Não é permitido cancelar uma solicitação já PAGA (id=' || p_id_solicitacao || ').';
+    END IF;
+
+    UPDATE solicitacoes_auxilio
+    SET status = 'CANCELADO'
+    WHERE id = p_id_solicitacao;
+
+    INSERT INTO log_auditoria (tabela, operacao, registro_id, detalhes)
+    VALUES (
+    'solicitacoes_auxilio',
+    'UPDATE',
+    p_id_solicitacao,
+    'Solicitação cancelada. Motivo: ' || COALESCE(p_motivo, '(sem motivo)')
+    );
+
+    RETURN 'OK: Solicitação ' || p_id_solicitacao || ' cancelada com sucesso.';
+END;
+$$;
