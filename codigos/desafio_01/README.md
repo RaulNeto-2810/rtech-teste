@@ -74,6 +74,7 @@ curl -X DELETE "http://127.0.0.1:8000/solicitacoes/{id}"
 ```
 desafio_01/
 ├── main.py              # Código principal da API
+├── prints/               # Imagens de teste utilizado
 ├── requirements.txt     # Dependências do projeto
 ├── ENUNCIADO.md         # Enunciado do desafio
 └── README.md           # Documentação
