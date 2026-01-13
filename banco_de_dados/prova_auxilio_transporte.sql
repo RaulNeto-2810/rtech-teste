@@ -62,10 +62,10 @@ INSERT INTO funcionarios (matricula, nome, departamento, data_admissao) VALUES
 ('MAT-0008','Helena Pereira','TI', CURRENT_DATE - INTERVAL '950 days'),
 ('MAT-0009','Igor Santos','TI', CURRENT_DATE - INTERVAL '900 days'),
 ('MAT-0010','Julia Freitas','TI', CURRENT_DATE - INTERVAL '880 days'),
-('MAT-0011','Kaique Moraes','Operações', CURRENT_DATE - INTERVAL '760 days'),
-('MAT-0012','Larissa Campos','Operações', CURRENT_DATE - INTERVAL '740 days'),
-('MAT-0013','Marcos Oliveira','Operações', CURRENT_DATE - INTERVAL '720 days'),
-('MAT-0014','Nathalia Ribeiro','Operações', CURRENT_DATE - INTERVAL '700 days'),
+('MAT-0011','Kaique Moraes','Operacoes', CURRENT_DATE - INTERVAL '760 days'),
+('MAT-0012','Larissa Campos','Operacoes', CURRENT_DATE - INTERVAL '740 days'),
+('MAT-0013','Marcos Oliveira','Operacoes', CURRENT_DATE - INTERVAL '720 days'),
+('MAT-0014','Nathalia Ribeiro','Operacoes', CURRENT_DATE - INTERVAL '700 days'),
 ('MAT-0015','Otavio Martins','Comercial', CURRENT_DATE - INTERVAL '680 days'),
 ('MAT-0016','Patricia Barros','Comercial', CURRENT_DATE - INTERVAL '660 days'),
 ('MAT-0017','Rafael Araujo','Comercial', CURRENT_DATE - INTERVAL '640 days'),
@@ -200,11 +200,11 @@ BEGIN
     WHERE id = p_id_solicitacao;
 
     IF v_status_atual IS NULL THEN
-        RETURN 'ERRO: Solicitação não encontrada (id=' || p_id_solicitacao || ').';
+        RETURN 'ERRO: Solicitacao nao encontrada (id=' || p_id_solicitacao || ').';
     END IF;
 
     IF v_status_atual = 'PAGO' THEN
-        RETURN 'ERRO: Não é permitido cancelar uma solicitação já PAGA (id=' || p_id_solicitacao || ').';
+        RETURN 'ERRO: Nao e permitido cancelar uma solicitacao ja PAGA (id=' || p_id_solicitacao || ').';
     END IF;
 
     UPDATE solicitacoes_auxilio
@@ -216,10 +216,10 @@ BEGIN
     'solicitacoes_auxilio',
     'UPDATE',
     p_id_solicitacao,
-    'Solicitação cancelada. Motivo: ' || COALESCE(p_motivo, '(sem motivo)')
+    'Solicitacao cancelada. Motivo: ' || COALESCE(p_motivo, '(sem motivo)')
     );
 
-    RETURN 'OK: Solicitação ' || p_id_solicitacao || ' cancelada com sucesso.';
+    RETURN 'OK: Solicitacao ' || p_id_solicitacao || ' cancelada com sucesso.';
 END;
 $$;
 
@@ -253,3 +253,37 @@ SELECT
 FROM ranked
 WHERE ranking_no_departamento <= 3
 ORDER BY departamento ASC, ranking_no_departamento ASC, total_gasto DESC;
+
+-- 4) TESTES E VALIDAÇÕES
+-- Trigger: cria solicitação aprovada e paga (status deve virar PAGO)
+INSERT INTO solicitacoes_auxilio (id_funcionario, valor_solicitado, status, data_solicitacao)
+VALUES (1, 199.90, 'APROVADO', NOW());
+
+INSERT INTO pagamentos (id_solicitacao, valor_pago, data_pagamento)
+VALUES ((SELECT MAX(id) FROM solicitacoes_auxilio), 199.90, NOW());
+
+SELECT id, status
+FROM solicitacoes_auxilio
+WHERE id = (SELECT MAX(id) FROM solicitacoes_auxilio);
+
+SELECT *
+FROM log_auditoria
+ORDER BY data_evento DESC
+LIMIT 10;
+
+-- cancelar PENDENTE deve OK
+SELECT sp_cancelar_solicitacao(
+    (SELECT id FROM solicitacoes_auxilio WHERE status = 'PENDENTE' ORDER BY id DESC LIMIT 1),
+    'Usuario solicitou cancelamento'
+);
+
+-- cancelar PAGO deve ERRO
+SELECT sp_cancelar_solicitacao(
+    (SELECT id FROM solicitacoes_auxilio WHERE status = 'PAGO' ORDER BY id DESC LIMIT 1),
+    'Tentativa indevida'
+);
+
+SELECT *
+FROM log_auditoria
+ORDER BY data_evento DESC
+LIMIT 20;
