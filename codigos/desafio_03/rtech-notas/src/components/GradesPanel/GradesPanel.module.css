@@ -1,0 +1,139 @@
+.panel {
+    background: transparent;
+    padding: 0;
+    max-width: 100%;
+    margin: 0;
+}
+
+.panel h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 20px;
+    color: #1a1a1a;
+    font-weight: 600;
+    text-align: center;
+}
+
+.panel>p {
+    font-size: 14px;
+    color: #ffffff;
+    margin-bottom: 20px;
+    font-weight: 600;
+    padding: 10px 16px;
+    background: #00A693;
+    border-radius: 6px;
+    display: block;
+    text-align: center;
+}
+
+.panel ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 24px;
+}
+
+.panel li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: #f9fafb;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: #1a1a1a;
+}
+
+.panel li:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.panel li>div {
+    display: flex;
+    gap: 4px;
+}
+
+.panel li button {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panel li button:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: none;
+}
+
+.panel li button:last-child:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.panel li button ion-icon {
+    font-size: 18px;
+}
+
+.panel li button:first-child ion-icon {
+    color: #3b82f6;
+}
+
+.panel li button:last-child ion-icon {
+    color: #ef4444;
+}
+
+.panel li button:first-child ion-icon {
+    color: #3b82f6;
+}
+
+.panel li button:last-child ion-icon {
+    color: #ef4444;
+}
+
+@media (max-width: 768px) {
+    .panel h2 {
+        font-size: 24px;
+    }
+
+    .panel>p {
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+
+    .panel li {
+        padding: 14px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 640px) {
+    .panel h2 {
+        font-size: 22px;
+    }
+
+    .panel>p {
+        font-size: 13px;
+        padding: 8px 14px;
+    }
+
+    .panel li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 14px;
+    }
+
+    .panel li>div {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .panel button ion-icon {
+        font-size: 16px;
+    }
+}

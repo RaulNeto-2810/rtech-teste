@@ -1,0 +1,121 @@
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.list li:hover {
+    border-color: #d1d5db;
+    background: #f3f4f6;
+}
+
+.studentInfo {
+    cursor: pointer;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.studentName {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 14px;
+}
+
+.studentMatricula {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.list li span {
+    cursor: pointer;
+    flex: 1;
+    font-weight: 500;
+    color: #1a1a1a;
+}
+
+.list li.active {
+    background: rgba(0, 166, 147, 0.15);
+    border-color: #00A693;
+}
+
+.list li.active .studentName {
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.list li.active .studentMatricula {
+    color: #4b5563;
+}
+
+.list li.active button ion-icon {
+    opacity: 0.8;
+}
+
+.actions {
+    display: flex;
+    gap: 4px;
+}
+
+.list button {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.list button:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: none;
+}
+
+.list button:last-child:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.list button ion-icon {
+    font-size: 18px;
+}
+
+.list button:first-child ion-icon {
+    color: #3b82f6;
+}
+
+.list button:last-child ion-icon {
+    color: #ef4444;
+}
+
+.active .list button ion-icon {
+    opacity: 0.8;
+}
+
+@media (max-width: 640px) {
+    .list li {
+        padding: 12px 14px;
+    }
+
+    .list li span {
+        font-size: 14px;
+    }
+
+    .list button ion-icon {
+        font-size: 16px;
+    }
+}
