@@ -222,3 +222,34 @@ BEGIN
     RETURN 'OK: Solicitação ' || p_id_solicitacao || ' cancelada com sucesso.';
 END;
 $$;
+
+-- 3.5) SUBCONSULTA + WINDOW FUNCTION (Top 3 por departamento)
+WITH base AS (
+    SELECT
+    f.id AS funcionario_id,
+    f.nome,
+    f.departamento,
+    SUM(p.valor_pago) AS total_gasto,
+    COUNT(*) AS qtd_solicitacoes_aprovadas_com_pagamento
+    FROM pagamentos p
+    JOIN solicitacoes_auxilio s ON s.id = p.id_solicitacao
+    JOIN funcionarios f ON f.id = s.id_funcionario
+    GROUP BY f.id, f.nome, f.departamento
+),
+ranked AS (
+    SELECT
+    b.*,
+    DENSE_RANK() OVER (PARTITION BY b.departamento ORDER BY b.total_gasto DESC) AS ranking_no_departamento,
+    SUM(b.total_gasto) OVER (PARTITION BY b.departamento) AS total_departamento
+    FROM base b
+)
+SELECT
+    nome,
+    departamento,
+    total_gasto,
+    qtd_solicitacoes_aprovadas_com_pagamento AS qtd_solicitacoes_aprovadas,
+    ranking_no_departamento,
+  ROUND((total_gasto / NULLIF(total_departamento, 0)) * 100, 2) AS percentual_total_departamento
+FROM ranked
+WHERE ranking_no_departamento <= 3
+ORDER BY departamento ASC, ranking_no_departamento ASC, total_gasto DESC;
