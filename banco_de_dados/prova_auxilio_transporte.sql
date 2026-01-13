@@ -223,7 +223,7 @@ BEGIN
 END;
 $$;
 
--- 3.5) SUBCONSULTA + WINDOW FUNCTION (Top 3 por departamento)
+-- 3.5) SUBCONSULTA + WINDOW FUNCTION
 WITH base AS (
     SELECT
     f.id AS funcionario_id,
