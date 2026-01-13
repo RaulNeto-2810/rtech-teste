@@ -118,3 +118,34 @@ INSERT INTO solicitacoes_auxilio (id_funcionario, valor_solicitado, status, data
 (14, 260.00,'APROVADO', NOW() - INTERVAL '74 days'),
 (15, 310.00,'PENDENTE', NOW() - INTERVAL '75 days'),
 (16, 510.00,'APROVADO', NOW() - INTERVAL '76 days');
+
+
+-- =========================================================
+-- 3.1) JOIN e ORDER BY
+-- =========================================================
+SELECT
+    f.nome,
+    f.matricula,
+    f.departamento,
+    s.valor_solicitado,
+    s.status,
+    s.data_solicitacao
+FROM solicitacoes_auxilio s
+JOIN funcionarios f ON f.id = s.id_funcionario
+WHERE s.status = 'APROVADO'
+    AND s.data_solicitacao >= (NOW() - INTERVAL '6 months')
+ORDER BY f.departamento ASC, s.valor_solicitado DESC;
+
+-- =========================================================
+-- 3.2) GROUP BY e HAVING
+-- =========================================================
+SELECT
+    TO_CHAR(DATE_TRUNC('month', s.data_solicitacao), 'YYYY-MM') AS ano_mes,
+    COUNT(*) AS qtd_solicitacoes,
+    SUM(s.valor_solicitado) AS valor_total_solicitado,
+    ROUND(AVG(s.valor_solicitado), 2) AS valor_medio_solicitacoes,
+    SUM(CASE WHEN s.status = 'APROVADO' THEN 1 ELSE 0 END) AS qtd_aprovadas
+FROM solicitacoes_auxilio s
+GROUP BY DATE_TRUNC('month', s.data_solicitacao)
+HAVING COUNT(*) > 10
+ORDER BY DATE_TRUNC('month', s.data_solicitacao) DESC;
