@@ -1,5 +1,4 @@
 # RTech API
-
 ## Funcionalidades
 
 A API oferece um CRUD completo para gerenciar solicitações:
@@ -73,8 +72,9 @@ curl -X DELETE "http://127.0.0.1:8000/solicitacoes/{id}"
 ## Estrutura do Projeto
 
 ```
-rtech_api/
+desafio_01/
 ├── main.py              # Código principal da API
 ├── requirements.txt     # Dependências do projeto
+├── ENUNCIADO.md         # Enunciado do desafio
 └── README.md           # Documentação
 ```
